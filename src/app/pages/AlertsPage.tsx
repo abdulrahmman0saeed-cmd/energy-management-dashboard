@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "../components/ui/card"
 import { Badge } from "../components/ui/badge";
 import { Button } from "../components/ui/button";
 import { useApp } from "../context/AppContext";
+import { SEVERITY_BADGE, SEVERITY_ICON_BG, SEVERITY_ICON_COLOR } from "../lib/statusColors";
 import type { AlertType } from "../types";
 
 const TYPE_LABELS: Record<AlertType, string> = {
@@ -18,16 +19,10 @@ const TYPE_ICONS: Record<AlertType, React.ElementType> = {
   "maintenance-return": Wrench,
 };
 
-const SEVERITY_COLORS: Record<string, string> = {
-  critical: "bg-red-100 text-red-700 border-red-200",
-  warning: "bg-amber-100 text-amber-700 border-amber-200",
-  info: "bg-blue-100 text-blue-700 border-blue-200",
-};
-
 const SEVERITY_DOT: Record<string, string> = {
-  critical: "bg-red-500",
-  warning: "bg-amber-400",
-  info: "bg-blue-400",
+  critical: "bg-red-600",
+  warning:  "bg-amber-500",
+  info:     "bg-blue-600",
 };
 
 export function AlertsPage() {
@@ -48,8 +43,8 @@ export function AlertsPage() {
     <div className="p-6 space-y-6 bg-background min-h-full">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-semibold">Alerts</h1>
-          <p className="text-muted-foreground mt-1">Expiry, low stock, and maintenance return notifications</p>
+          <h1 className="text-xl font-semibold text-foreground">Alerts</h1>
+          <p className="text-sm text-muted-foreground mt-0.5">Expiry, low stock, and maintenance return notifications</p>
         </div>
         {unreadCount > 0 && (
           <Button variant="outline" className="gap-2" onClick={() => dispatch({ type: "MARK_ALL_READ" })}>
@@ -60,21 +55,29 @@ export function AlertsPage() {
 
       {/* Summary */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <Card><CardContent className="pt-6 flex items-center gap-3">
-          <Bell className="w-8 h-8 text-muted-foreground" />
-          <div><p className="text-xs text-muted-foreground">Total Active</p><p className="text-2xl font-semibold">{unreadCount}</p></div>
+        <Card><CardContent className="pt-5 pb-5 flex items-center gap-3">
+          <div className="w-10 h-10 rounded-xl bg-muted flex items-center justify-center flex-shrink-0">
+            <Bell className="w-5 h-5 text-muted-foreground" />
+          </div>
+          <div><p className="text-xs font-medium text-muted-foreground">Total Active</p><p className="text-2xl font-bold text-foreground">{unreadCount}</p></div>
         </CardContent></Card>
-        <Card><CardContent className="pt-6 flex items-center gap-3">
-          <AlertTriangle className="w-8 h-8 text-red-500" />
-          <div><p className="text-xs text-muted-foreground">Critical</p><p className="text-2xl font-semibold text-red-600">{criticalCount}</p></div>
+        <Card><CardContent className="pt-5 pb-5 flex items-center gap-3">
+          <div className="w-10 h-10 rounded-xl bg-red-100 flex items-center justify-center flex-shrink-0">
+            <AlertTriangle className="w-5 h-5 text-red-700" />
+          </div>
+          <div><p className="text-xs font-medium text-muted-foreground">Critical</p><p className="text-2xl font-bold text-red-700">{criticalCount}</p></div>
         </CardContent></Card>
-        <Card><CardContent className="pt-6 flex items-center gap-3">
-          <Clock className="w-8 h-8 text-amber-500" />
-          <div><p className="text-xs text-muted-foreground">Expiry</p><p className="text-2xl font-semibold">{state.alerts.filter(a => a.type === "expiry" && !a.isRead).length}</p></div>
+        <Card><CardContent className="pt-5 pb-5 flex items-center gap-3">
+          <div className="w-10 h-10 rounded-xl bg-amber-100 flex items-center justify-center flex-shrink-0">
+            <Clock className="w-5 h-5 text-amber-700" />
+          </div>
+          <div><p className="text-xs font-medium text-muted-foreground">Expiry</p><p className="text-2xl font-bold text-foreground">{state.alerts.filter(a => a.type === "expiry" && !a.isRead).length}</p></div>
         </CardContent></Card>
-        <Card><CardContent className="pt-6 flex items-center gap-3">
-          <TrendingDown className="w-8 h-8 text-orange-500" />
-          <div><p className="text-xs text-muted-foreground">Low Stock</p><p className="text-2xl font-semibold">{state.alerts.filter(a => a.type === "low-stock" && !a.isRead).length}</p></div>
+        <Card><CardContent className="pt-5 pb-5 flex items-center gap-3">
+          <div className="w-10 h-10 rounded-xl bg-amber-100 flex items-center justify-center flex-shrink-0">
+            <TrendingDown className="w-5 h-5 text-amber-700" />
+          </div>
+          <div><p className="text-xs font-medium text-muted-foreground">Low Stock</p><p className="text-2xl font-bold text-foreground">{state.alerts.filter(a => a.type === "low-stock" && !a.isRead).length}</p></div>
         </CardContent></Card>
       </div>
 
@@ -94,14 +97,15 @@ export function AlertsPage() {
 
       {/* Alert List */}
       <Card>
-        <CardHeader>
-          <CardTitle className="text-base">{filtered.length} Alert{filtered.length !== 1 ? "s" : ""}</CardTitle>
+        <CardHeader className="pb-2">
+          <CardTitle className="text-sm font-semibold text-foreground">{filtered.length} Alert{filtered.length !== 1 ? "s" : ""}</CardTitle>
         </CardHeader>
-        <CardContent className="space-y-2 p-4">
+        <CardContent className="space-y-2">
           {filtered.length === 0 && (
             <div className="text-center py-12 text-muted-foreground">
-              <CheckCheck className="w-10 h-10 mx-auto mb-3 text-green-400" />
-              <p>No alerts to display</p>
+              <CheckCheck className="w-10 h-10 mx-auto mb-3 text-emerald-500" />
+              <p className="font-medium text-foreground">All clear</p>
+              <p className="text-sm mt-1">No alerts to display</p>
             </div>
           )}
           {filtered.map(alert => {
@@ -109,15 +113,21 @@ export function AlertsPage() {
             return (
               <div
                 key={alert.id}
-                className={`flex items-start gap-3 p-4 rounded-xl border transition-all ${alert.isRead ? "bg-muted/20 opacity-60" : "bg-card shadow-sm"}`}
+                className={`flex items-start gap-3 p-4 rounded-xl border transition-all ${
+                  alert.isRead
+                    ? "bg-muted/30 border-border opacity-60"
+                    : alert.severity === "critical"
+                      ? "bg-red-50 border-red-200"
+                      : "bg-amber-50 border-amber-200"
+                }`}
               >
-                <div className={`w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0 ${alert.severity === "critical" ? "bg-red-100" : "bg-amber-100"}`}>
-                  <Icon className={`w-4 h-4 ${alert.severity === "critical" ? "text-red-600" : "text-amber-600"}`} />
+                <div className={`w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 ${SEVERITY_ICON_BG[alert.severity]}`}>
+                  <Icon className={`w-4 h-4 ${SEVERITY_ICON_COLOR[alert.severity]}`} />
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 flex-wrap">
-                    <span className="font-medium text-sm">{alert.partNumber}</span>
-                    <Badge className={`${SEVERITY_COLORS[alert.severity]} border text-xs`}>{alert.severity}</Badge>
+                    <span className="font-semibold text-sm text-foreground">{alert.partNumber}</span>
+                    <Badge className={`${SEVERITY_BADGE[alert.severity]} border text-xs font-medium`}>{alert.severity}</Badge>
                     <Badge variant="outline" className="text-xs">{TYPE_LABELS[alert.type]}</Badge>
                     {!alert.isRead && <div className={`w-2 h-2 rounded-full ${SEVERITY_DOT[alert.severity]}`} />}
                   </div>

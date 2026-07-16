@@ -8,14 +8,9 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { Label } from "../components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../components/ui/select";
 import { useApp } from "../context/AppContext";
+import { STATUS_BADGE } from "../lib/statusColors";
+import { searchParts } from "../lib/search";
 import type { SparePart, MaintenanceRecord, HistoryEvent } from "../types";
-
-const STATUS_COLORS: Record<string, string> = {
-  Available: "bg-green-100 text-green-700 border-green-200",
-  "Under Maintenance": "bg-blue-100 text-blue-700 border-blue-200",
-  Expired: "bg-red-100 text-red-700 border-red-200",
-  "Low Stock": "bg-orange-100 text-orange-700 border-orange-200",
-};
 
 const EMPTY_PART: Omit<SparePart, "id"> = {
   partNumber: "", serialNumber: "", description: "", quantity: 0,
@@ -38,19 +33,25 @@ export function SparePartsPage() {
 
   const today = new Date();
 
-  const computedStatus = (part: SparePart): SparePart["status"] => {
-    if (part.status === "Under Maintenance") return "Under Maintenance";
-    if (part.expiryDate && new Date(part.expiryDate) < today) return "Expired";
-    if (part.quantity <= part.minStockThreshold && part.quantity > 0) return "Low Stock";
+  const computedStatus = (part: SparePart) => {
+    if (part.status === "Under Tracking") return "Under Tracking" as const;
+    if (part.expiryDate && new Date(part.expiryDate) < today) return "Expired" as const;
+    if (part.expiryDate) {
+      const daysLeft = (new Date(part.expiryDate).getTime() - today.getTime()) / (1000 * 60 * 60 * 24);
+      if (daysLeft <= part.expiryAlertDays) return "Expired Soon" as const;
+    }
+    if (part.quantity <= part.minStockThreshold && part.quantity > 0) return "Low Stock" as const;
     return part.status;
   };
 
-  const filtered = state.spareParts.filter(p => {
-    const s = search.toLowerCase();
+  const usageCount = (partId: string) =>
+    state.history.filter(h => h.partId === partId && h.eventType === "maintenance-sent").length;
+
+  const searchedParts = searchParts(state.spareParts, search);
+  const filtered = searchedParts.filter(p => {
     const st = computedStatus(p);
-    const matchSearch = !s || p.partNumber.toLowerCase().includes(s) || p.serialNumber.toLowerCase().includes(s) || p.description.toLowerCase().includes(s) || p.location.toLowerCase().includes(s);
     const matchStatus = statusFilter === "all" || st === statusFilter;
-    return matchSearch && matchStatus;
+    return matchStatus;
   });
 
   const openAdd = () => { setFormData(EMPTY_PART); setEditPart(null); setShowAddDialog(true); };
@@ -93,13 +94,13 @@ export function SparePartsPage() {
       partNumber: selectedPart.partNumber,
       serialNumber: selectedPart.serialNumber,
       eventType: "maintenance-sent",
-      description: `Sent for maintenance. Expected return: ${maintenanceForm.expectedReturnDate}`,
+      description: `Sent for re-collaboration. Expected return: ${maintenanceForm.expectedReturnDate}`,
       oldValue: "Available",
-      newValue: "Under Maintenance",
+      newValue: "Under Tracking",
       performedBy: state.currentUser.name,
       timestamp: new Date().toISOString(),
     };
-    dispatch({ type: "SEND_FOR_MAINTENANCE", payload: { part: { ...selectedPart, status: "Under Maintenance", quantity: selectedPart.quantity - 1 }, record, historyEvent } });
+    dispatch({ type: "SEND_FOR_TRACKING", payload: { part: { ...selectedPart, status: "Under Tracking", quantity: selectedPart.quantity - 1 }, record, historyEvent } });
     setShowMaintenanceDialog(false);
   };
 
@@ -118,14 +119,14 @@ export function SparePartsPage() {
       partNumber: selectedPart.partNumber,
       serialNumber: selectedPart.serialNumber,
       eventType: "maintenance-returned",
-      description: "Returned from maintenance",
-      oldValue: "Under Maintenance",
+      description: "Returned from re-collaboration",
+      oldValue: "Under Tracking",
       newValue: "Available",
       performedBy: state.currentUser.name,
       timestamp: new Date().toISOString(),
     };
     dispatch({
-      type: "RETURN_FROM_MAINTENANCE",
+      type: "RETURN_FROM_TRACKING",
       payload: {
         partId: selectedPart.id,
         recordId: activeRecord?.id ?? "",
@@ -141,8 +142,8 @@ export function SparePartsPage() {
     <div className="p-6 space-y-6 bg-background min-h-full">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-semibold">Spare Parts</h1>
-          <p className="text-muted-foreground mt-1">Manage and monitor all spare parts inventory</p>
+          <h1 className="text-xl font-semibold text-foreground">Spare Parts</h1>
+          <p className="text-sm text-muted-foreground mt-0.5">Manage and monitor all spare parts inventory</p>
         </div>
         <Button onClick={openAdd} className="gap-2">
           <Plus className="w-4 h-4" /> Add Part
@@ -164,9 +165,10 @@ export function SparePartsPage() {
               <SelectContent>
                 <SelectItem value="all">All Statuses</SelectItem>
                 <SelectItem value="Available">Available</SelectItem>
-                <SelectItem value="Low Stock">Low Stock</SelectItem>
-                <SelectItem value="Under Maintenance">Under Maintenance</SelectItem>
+                <SelectItem value="Under Tracking">Under Tracking</SelectItem>
+                <SelectItem value="Expired Soon">Expired Soon</SelectItem>
                 <SelectItem value="Expired">Expired</SelectItem>
+                <SelectItem value="Low Stock">Low Stock</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -175,54 +177,60 @@ export function SparePartsPage() {
 
       {/* Table */}
       <Card>
-        <CardHeader>
-          <CardTitle className="text-base">{filtered.length} Parts</CardTitle>
+        <CardHeader className="pb-0">
+          <CardTitle className="text-sm font-semibold text-foreground">
+            {filtered.length} Part{filtered.length !== 1 ? "s" : ""}
+          </CardTitle>
         </CardHeader>
-        <CardContent className="p-0">
+        <CardContent className="p-0 mt-4">
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
-                <tr className="border-b bg-muted/40">
-                  <th className="text-left px-4 py-3 font-medium text-muted-foreground">Part #</th>
-                  <th className="text-left px-4 py-3 font-medium text-muted-foreground">Serial #</th>
-                  <th className="text-left px-4 py-3 font-medium text-muted-foreground">Description</th>
-                  <th className="text-left px-4 py-3 font-medium text-muted-foreground">Qty</th>
-                  <th className="text-left px-4 py-3 font-medium text-muted-foreground">Location</th>
-                  <th className="text-left px-4 py-3 font-medium text-muted-foreground">Expiry Date</th>
-                  <th className="text-left px-4 py-3 font-medium text-muted-foreground">Status</th>
-                  <th className="text-left px-4 py-3 font-medium text-muted-foreground">Actions</th>
+                <tr className="border-b border-border bg-muted/50">
+                  <th className="text-left px-5 py-3 text-xs font-semibold text-muted-foreground uppercase tracking-wider">Part #</th>
+                  <th className="text-left px-5 py-3 text-xs font-semibold text-muted-foreground uppercase tracking-wider">Serial #</th>
+                  <th className="text-left px-5 py-3 text-xs font-semibold text-muted-foreground uppercase tracking-wider">Description</th>
+                  <th className="text-left px-5 py-3 text-xs font-semibold text-muted-foreground uppercase tracking-wider">Qty</th>
+                  <th className="text-left px-5 py-3 text-xs font-semibold text-muted-foreground uppercase tracking-wider">Times Used</th>
+                  <th className="text-left px-5 py-3 text-xs font-semibold text-muted-foreground uppercase tracking-wider">Location</th>
+                  <th className="text-left px-5 py-3 text-xs font-semibold text-muted-foreground uppercase tracking-wider">Expiry Date</th>
+                  <th className="text-left px-5 py-3 text-xs font-semibold text-muted-foreground uppercase tracking-wider">Status</th>
+                  <th className="text-left px-5 py-3 text-xs font-semibold text-muted-foreground uppercase tracking-wider">Actions</th>
                 </tr>
               </thead>
               <tbody>
-                {filtered.map(part => {
+                {filtered.map((part, i) => {
                   const status = computedStatus(part);
                   return (
-                    <tr key={part.id} className="border-b last:border-0 hover:bg-accent/30 transition-colors">
-                      <td className="px-4 py-3 font-medium">{part.partNumber}</td>
-                      <td className="px-4 py-3 text-muted-foreground">{part.serialNumber}</td>
-                      <td className="px-4 py-3">{part.description}</td>
-                      <td className="px-4 py-3">
-                        <span className={part.quantity <= part.minStockThreshold ? "text-red-600 font-semibold" : ""}>{part.quantity}</span>
+                    <tr key={part.id} className={`border-b border-border last:border-0 hover:bg-accent/40 transition-colors ${i % 2 !== 0 ? "bg-muted/20" : ""}`}>
+                      <td className="px-5 py-3.5 font-semibold text-foreground">{part.partNumber}</td>
+                      <td className="px-5 py-3.5 text-muted-foreground font-mono text-xs">{part.serialNumber}</td>
+                      <td className="px-5 py-3.5 text-foreground">{part.description}</td>
+                      <td className="px-5 py-3.5">
+                        <span className={part.quantity <= part.minStockThreshold ? "text-red-700 font-bold" : "font-medium text-foreground"}>{part.quantity}</span>
                         <span className="text-muted-foreground text-xs"> / {part.minStockThreshold}</span>
                       </td>
-                      <td className="px-4 py-3 text-muted-foreground">{part.location}</td>
-                      <td className="px-4 py-3 text-muted-foreground">{part.expiryDate || "—"}</td>
-                      <td className="px-4 py-3">
-                        <Badge className={`${STATUS_COLORS[status]} border text-xs`}>{status}</Badge>
+                      <td className="px-5 py-3.5">
+                        {(() => { const c = usageCount(part.id); return c > 0 ? <span className="inline-flex items-center gap-1 text-xs font-semibold text-primary bg-primary/10 px-2 py-0.5 rounded-full">{c}×</span> : <span className="text-muted-foreground text-xs">—</span>; })()}
                       </td>
-                      <td className="px-4 py-3">
+                      <td className="px-5 py-3.5 text-muted-foreground">{part.location}</td>
+                      <td className="px-5 py-3.5 text-muted-foreground">{part.expiryDate || "—"}</td>
+                      <td className="px-5 py-3.5">
+                        <Badge className={`${STATUS_BADGE[status]} border text-xs font-medium`}>{status}</Badge>
+                      </td>
+                      <td className="px-5 py-3.5">
                         <div className="flex gap-1">
-                          <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => openEdit(part)} title="Edit">
+                          <Button variant="ghost" size="icon" className="h-9 w-9" onClick={() => openEdit(part)} title="Edit">
                             <Edit2 className="w-3.5 h-3.5" />
                           </Button>
-                          {status !== "Under Maintenance" && (
-                            <Button variant="ghost" size="icon" className="h-8 w-8 text-blue-600 hover:text-blue-700" onClick={() => openSendMaintenance(part)} title="Send for Maintenance">
-                              <Wrench className="w-3.5 h-3.5" />
+                          {status !== "Under Tracking" && (
+                            <Button variant="ghost" size="icon" className="h-9 w-9 text-blue-700 hover:text-blue-800 hover:bg-blue-50" onClick={() => openSendMaintenance(part)} title="Sent for re-collaboration">
+                              <Wrench className="w-4 h-4" />
                             </Button>
                           )}
-                          {status === "Under Maintenance" && (
-                            <Button variant="ghost" size="icon" className="h-8 w-8 text-green-600 hover:text-green-700" onClick={() => openReturn(part)} title="Return from Maintenance">
-                              <RotateCcw className="w-3.5 h-3.5" />
+                          {status === "Under Tracking" && (
+                            <Button variant="ghost" size="icon" className="h-9 w-9 text-emerald-700 hover:text-emerald-800 hover:bg-emerald-50" onClick={() => openReturn(part)} title="Return from Maintenance">
+                              <RotateCcw className="w-4 h-4" />
                             </Button>
                           )}
                         </div>
@@ -231,7 +239,7 @@ export function SparePartsPage() {
                   );
                 })}
                 {filtered.length === 0 && (
-                  <tr><td colSpan={8} className="px-4 py-12 text-center text-muted-foreground">No spare parts found.</td></tr>
+                  <tr><td colSpan={9} className="px-5 py-12 text-center text-muted-foreground">No spare parts found.</td></tr>
                 )}
               </tbody>
             </table>
@@ -297,11 +305,11 @@ export function SparePartsPage() {
         </DialogContent>
       </Dialog>
 
-      {/* Send for Maintenance Dialog */}
+      {/* Sent for re-collaboration Dialog */}
       <Dialog open={showMaintenanceDialog} onOpenChange={setShowMaintenanceDialog}>
         <DialogContent className="max-w-md">
           <DialogHeader>
-            <DialogTitle>Send for Maintenance</DialogTitle>
+            <DialogTitle>Sent for re-collaboration</DialogTitle>
           </DialogHeader>
           {selectedPart && (
             <div className="space-y-4 py-2">

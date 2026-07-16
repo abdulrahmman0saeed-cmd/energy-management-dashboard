@@ -29,8 +29,8 @@ export function AnalyticsChart({ data, graphType, deviceName }: AnalyticsChartPr
       <AreaChart data={data}>
         <defs>
           <linearGradient id="consumptionGradient" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="5%" stopColor="hsl(var(--primary))" stopOpacity={0.3}/>
-            <stop offset="95%" stopColor="hsl(var(--primary))" stopOpacity={0}/>
+            <stop offset="5%" stopColor="var(--primary)" stopOpacity={0.3}/>
+            <stop offset="95%" stopColor="var(--primary)" stopOpacity={0}/>
           </linearGradient>
         </defs>
         <CartesianGrid strokeDasharray="3 3" className="opacity-30" />
@@ -42,10 +42,10 @@ export function AnalyticsChart({ data, graphType, deviceName }: AnalyticsChartPr
         <YAxis className="text-xs" tick={{ fontSize: 12 }} />
         <Tooltip 
           contentStyle={{ 
-            backgroundColor: 'hsl(var(--card))',
-            border: '1px solid hsl(var(--border))',
+            backgroundColor: 'var(--card)',
+            border: '1px solid var(--border)',
             borderRadius: '8px',
-            color: 'hsl(var(--card-foreground))'
+            color: 'var(--card-foreground)'
           }}
           labelFormatter={(value) => `Time: ${value}`}
           formatter={(value: number, name: string) => [
@@ -59,7 +59,7 @@ export function AnalyticsChart({ data, graphType, deviceName }: AnalyticsChartPr
         <Area
           type="monotone"
           dataKey="kwh"
-          stroke="hsl(var(--primary))"
+          stroke="var(--primary)"
           strokeWidth={2}
           fill="url(#consumptionGradient)"
           name="Energy (kWh)"
@@ -67,7 +67,7 @@ export function AnalyticsChart({ data, graphType, deviceName }: AnalyticsChartPr
         <Line
           type="monotone"
           dataKey="kw"
-          stroke="hsl(var(--chart-2))"
+          stroke="var(--chart-2)"
           strokeWidth={2}
           name="Power (kW)"
           dot={false}
@@ -88,10 +88,10 @@ export function AnalyticsChart({ data, graphType, deviceName }: AnalyticsChartPr
         <YAxis className="text-xs" tick={{ fontSize: 12 }} />
         <Tooltip 
           contentStyle={{ 
-            backgroundColor: 'hsl(var(--card))',
-            border: '1px solid hsl(var(--border))',
+            backgroundColor: 'var(--card)',
+            border: '1px solid var(--border)',
             borderRadius: '8px',
-            color: 'hsl(var(--card-foreground))'
+            color: 'var(--card-foreground)'
           }}
           labelFormatter={(value) => `Time: ${value}`}
           formatter={(value: number, name: string) => [
@@ -115,7 +115,7 @@ export function AnalyticsChart({ data, graphType, deviceName }: AnalyticsChartPr
         <Line
           type="monotone"
           dataKey="kvah"
-          stroke="hsl(var(--primary))"
+          stroke="var(--primary)"
           strokeWidth={2}
           name="KVAH"
           dot={false}
@@ -123,7 +123,7 @@ export function AnalyticsChart({ data, graphType, deviceName }: AnalyticsChartPr
         <Line
           type="monotone"
           dataKey="kva"
-          stroke="hsl(var(--chart-2))"
+          stroke="var(--chart-2)"
           strokeWidth={2}
           name="KVA"
           dot={false}
@@ -131,7 +131,7 @@ export function AnalyticsChart({ data, graphType, deviceName }: AnalyticsChartPr
         <Line
           type="monotone"
           dataKey="kw"
-          stroke="hsl(var(--chart-3))"
+          stroke="var(--chart-3)"
           strokeWidth={2}
           name="KW"
           dot={false}
@@ -139,7 +139,7 @@ export function AnalyticsChart({ data, graphType, deviceName }: AnalyticsChartPr
         <Line
           type="monotone"
           dataKey="pf"
-          stroke="hsl(var(--chart-4))"
+          stroke="var(--chart-4)"
           strokeWidth={2}
           name="Power Factor"
           dot={false}
@@ -160,10 +160,10 @@ export function AnalyticsChart({ data, graphType, deviceName }: AnalyticsChartPr
         <YAxis className="text-xs" tick={{ fontSize: 12 }} />
         <Tooltip 
           contentStyle={{ 
-            backgroundColor: 'hsl(var(--card))',
-            border: '1px solid hsl(var(--border))',
+            backgroundColor: 'var(--card)',
+            border: '1px solid var(--border)',
             borderRadius: '8px',
-            color: 'hsl(var(--card-foreground))'
+            color: 'var(--card-foreground)'
           }}
           labelFormatter={(value) => `Time: ${value}`}
           formatter={(value: number, name: string) => [
@@ -174,13 +174,13 @@ export function AnalyticsChart({ data, graphType, deviceName }: AnalyticsChartPr
         <Legend />
         <Bar
           dataKey="kvarh_lag"
-          fill="hsl(var(--chart-4))"
+          fill="var(--chart-4)"
           name="KVARh (Lag)"
           radius={[2, 2, 0, 0]}
         />
         <Bar
           dataKey="kvarh_lead"
-          fill="hsl(var(--chart-5))"
+          fill="var(--chart-5)"
           name="KVARh (Lead)"
           radius={[2, 2, 0, 0]}
         />

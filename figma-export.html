@@ -1,0 +1,917 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=1440" />
+<title>Spare Parts Tracking System — UI Kit</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #e8eaf6; color: #111827; font-size: 14px; }
+
+  /* ── Tokens ── */
+  :root {
+    --bg:        #f0f1f9;
+    --card:      #ffffff;
+    --primary:   #4338ca;
+    --primary10: #e0e7ff;
+    --muted:     #e8eaf6;
+    --muted-fg:  #475569;
+    --border:    #c7c9e0;
+    --fg:        #111827;
+    --sidebar:   #1e1b4b;
+    --sidebar-accent: #312e81;
+    --sidebar-primary: #a5b4fc;
+    --radius:    10px;
+    --shadow:    0 1px 3px rgba(0,0,0,0.08), 0 1px 2px rgba(0,0,0,0.04);
+  }
+
+  /* ── Layout ── */
+  .screen         { display: flex; width: 1440px; min-height: 900px; background: var(--bg); }
+  .sidebar        { width: 240px; background: var(--sidebar); flex-shrink: 0; display: flex; flex-direction: column; padding: 20px 12px; }
+  .main           { flex: 1; overflow: auto; }
+  .page           { padding: 28px; display: flex; flex-direction: column; gap: 20px; min-height: 900px; background: var(--bg); }
+
+  /* ── Sidebar ── */
+  .sidebar-logo   { display: flex; align-items: center; gap: 10px; padding: 8px 12px 24px; }
+  .sidebar-logo-icon { width: 36px; height: 36px; background: var(--primary); border-radius: 8px; display: flex; align-items: center; justify-content: center; }
+  .sidebar-logo-text { color: #e0e7ff; font-weight: 700; font-size: 13px; line-height: 1.3; }
+  .sidebar-logo-sub  { color: #818cf8; font-size: 10px; }
+  .sidebar-section   { font-size: 10px; font-weight: 600; color: #6366f1; letter-spacing: .08em; text-transform: uppercase; padding: 12px 12px 6px; }
+  .nav-item       { display: flex; align-items: center; gap: 10px; padding: 9px 12px; border-radius: 8px; color: #c7d2fe; font-size: 13px; font-weight: 500; cursor: pointer; margin-bottom: 2px; position: relative; }
+  .nav-item:hover { background: rgba(165,180,252,.12); }
+  .nav-item.active{ background: rgba(165,180,252,.18); color: #e0e7ff; }
+  .nav-item.active::before { content:''; position:absolute; left:0; top:50%; transform:translateY(-50%); width:3px; height:20px; background:var(--sidebar-primary); border-radius:0 3px 3px 0; }
+  .nav-icon       { width: 16px; height: 16px; opacity: .8; flex-shrink: 0; }
+  .nav-badge      { margin-left: auto; background: #dc2626; color: #fff; font-size: 10px; font-weight: 700; padding: 1px 6px; border-radius: 99px; }
+  .sidebar-footer { margin-top: auto; border-top: 1px solid #312e81; padding-top: 16px; }
+  .sidebar-user   { display: flex; align-items: center; gap: 10px; padding: 8px 12px; border-radius: 8px; }
+  .avatar         { width: 34px; height: 34px; background: #4338ca; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #e0e7ff; font-weight: 700; font-size: 12px; flex-shrink: 0; }
+  .avatar-name    { color: #e0e7ff; font-size: 12px; font-weight: 600; }
+  .avatar-role    { color: #818cf8; font-size: 10px; }
+
+  /* ── Card ── */
+  .card           { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); box-shadow: var(--shadow); }
+  .card-header    { padding: 16px 20px 0; }
+  .card-title     { font-size: 13px; font-weight: 600; color: var(--fg); display: flex; align-items: center; gap: 6px; }
+  .card-desc      { font-size: 12px; color: var(--muted-fg); margin-top: 2px; }
+  .card-body      { padding: 16px 20px; }
+  .card-body-flush{ padding: 0; }
+
+  /* ── Stat Card ── */
+  .stat-cards     { display: grid; grid-template-columns: repeat(4,1fr); gap: 14px; }
+  .stat-card      { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); box-shadow: var(--shadow); border-left: 4px solid; padding: 18px 16px; display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+  .stat-card.emerald { border-left-color: #10b981; }
+  .stat-card.blue    { border-left-color: #3b82f6; }
+  .stat-card.amber   { border-left-color: #f59e0b; }
+  .stat-card.red     { border-left-color: #ef4444; }
+  .stat-label     { font-size: 12px; font-weight: 500; color: var(--muted-fg); }
+  .stat-value     { font-size: 28px; font-weight: 800; color: var(--fg); line-height: 1; margin: 4px 0 2px; }
+  .stat-sub       { font-size: 11px; color: var(--muted-fg); }
+  .stat-icon      { width: 42px; height: 42px; border-radius: 10px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .stat-icon.emerald { background: #d1fae5; }
+  .stat-icon.blue    { background: #dbeafe; }
+  .stat-icon.amber   { background: #fef3c7; }
+  .stat-icon.red     { background: #fee2e2; }
+  .stat-icon svg  { width: 18px; height: 18px; }
+
+  /* ── Badges ── */
+  .badge          { display: inline-flex; align-items: center; gap: 4px; padding: 2px 8px; border-radius: 99px; font-size: 11px; font-weight: 600; border: 1px solid; }
+  .badge-available  { background:#d1fae5; color:#065f46; border-color:#a7f3d0; }
+  .badge-maint      { background:#dbeafe; color:#1e40af; border-color:#bfdbfe; }
+  .badge-expired    { background:#fee2e2; color:#991b1b; border-color:#fecaca; }
+  .badge-lowstock   { background:#fef3c7; color:#92400e; border-color:#fde68a; }
+  .badge-critical   { background:#fee2e2; color:#991b1b; border-color:#fecaca; }
+  .badge-warning    { background:#fef3c7; color:#92400e; border-color:#fde68a; }
+  .badge-info       { background:#dbeafe; color:#1e40af; border-color:#bfdbfe; }
+  .badge-active     { background:#dbeafe; color:#1e40af; border-color:#bfdbfe; }
+  .badge-overdue    { background:#fee2e2; color:#991b1b; border-color:#fecaca; }
+  .badge-returned   { background:#d1fae5; color:#065f46; border-color:#a7f3d0; }
+  .badge-primary    { background:#e0e7ff; color:#3730a3; border-color:#c7d2fe; }
+  .badge-outline    { background:transparent; color:#475569; border-color:#c7c9e0; }
+
+  /* ── Button ── */
+  .btn            { display:inline-flex; align-items:center; gap:6px; padding:7px 14px; border-radius:8px; font-size:13px; font-weight:500; cursor:pointer; border:1px solid; }
+  .btn-primary    { background:var(--primary); color:#fff; border-color:var(--primary); }
+  .btn-outline    { background:#fff; color:var(--fg); border-color:var(--border); }
+  .btn-sm         { padding:5px 10px; font-size:12px; }
+  .btn-ghost      { background:transparent; color:var(--muted-fg); border-color:transparent; }
+
+  /* ── Progress ── */
+  .health-row     { margin-bottom: 14px; }
+  .health-row:last-child { margin-bottom: 0; }
+  .health-label   { display:flex; justify-content:space-between; margin-bottom:5px; font-size:13px; }
+  .health-track   { height:10px; background:var(--muted); border-radius:99px; overflow:hidden; }
+  .health-fill    { height:100%; border-radius:99px; }
+
+  /* ── Table ── */
+  table           { width:100%; border-collapse:collapse; font-size:13px; }
+  thead tr        { background:#f5f6fc; border-bottom:1px solid var(--border); }
+  th              { text-align:left; padding:10px 20px; font-size:11px; font-weight:600; color:var(--muted-fg); text-transform:uppercase; letter-spacing:.06em; }
+  tbody tr        { border-bottom:1px solid var(--border); transition:background .15s; }
+  tbody tr:last-child { border-bottom:none; }
+  tbody tr:nth-child(even) { background:#fafbff; }
+  tbody tr:hover  { background:#f0f1f9; }
+  td              { padding:11px 20px; color:var(--fg); vertical-align:middle; }
+
+  /* ── Grid helpers ── */
+  .grid-2   { display:grid; grid-template-columns:1fr 1fr; gap:14px; }
+  .grid-3   { display:grid; grid-template-columns:1fr 1fr 1fr; gap:14px; }
+  .flex     { display:flex; }
+  .flex-between { display:flex; align-items:center; justify-content:space-between; }
+  .flex-center  { display:flex; align-items:center; }
+  .gap-2    { gap:8px; }
+  .gap-3    { gap:12px; }
+  .gap-4    { gap:16px; }
+  .mt-1     { margin-top:4px; }
+  .mt-2     { margin-top:8px; }
+  .space-y-2 > * + * { margin-top:8px; }
+  .text-xs   { font-size:11px; }
+  .text-sm   { font-size:13px; }
+  .text-muted { color:var(--muted-fg); }
+  .font-semi { font-weight:600; }
+  .font-bold { font-weight:700; }
+  .uppercase { text-transform:uppercase; letter-spacing:.07em; }
+  .overflow-hidden { overflow:hidden; }
+  .rounded   { border-radius:8px; }
+  .p-3       { padding:12px; }
+  .border    { border:1px solid var(--border); }
+
+  /* ── Alert items ── */
+  .alert-item     { display:flex; align-items:flex-start; gap:10px; padding:12px; border-radius:8px; border:1px solid; }
+  .alert-critical { background:#fff5f5; border-color:#fecaca; }
+  .alert-warning  { background:#fffbeb; border-color:#fde68a; }
+  .alert-dot      { width:8px; height:8px; border-radius:50%; margin-top:4px; flex-shrink:0; }
+  .dot-red        { background:#dc2626; }
+  .dot-amber      { background:#f59e0b; }
+
+  /* ── Input / Form ── */
+  .input          { width:100%; padding:8px 12px; border:1px solid var(--border); border-radius:8px; font-size:13px; background:#fff; color:var(--fg); outline:none; }
+  .input:focus    { border-color:var(--primary); box-shadow:0 0 0 3px rgba(67,56,202,.12); }
+  .label          { font-size:12px; font-weight:500; color:#374151; display:block; margin-bottom:4px; }
+  .form-row       { display:grid; grid-template-columns:1fr 1fr; gap:14px; }
+  .select         { width:100%; padding:8px 12px; border:1px solid var(--border); border-radius:8px; font-size:13px; background:#fff; }
+
+  /* ── Dialog ── */
+  .dialog-overlay { position:absolute; inset:0; background:rgba(0,0,0,.4); display:flex; align-items:center; justify-content:center; z-index:10; }
+  .dialog         { background:#fff; border-radius:14px; width:440px; box-shadow:0 20px 60px rgba(0,0,0,.2); padding:24px; }
+  .dialog-title   { font-size:16px; font-weight:700; margin-bottom:16px; }
+  .dialog-footer  { display:flex; justify-content:flex-end; gap:8px; margin-top:20px; }
+
+  /* ── Tabs ── */
+  .tabs-list      { display:flex; gap:4px; background:var(--muted); padding:4px; border-radius:10px; margin-bottom:16px; }
+  .tab            { padding:7px 14px; border-radius:7px; font-size:12px; font-weight:500; color:var(--muted-fg); cursor:pointer; display:flex; align-items:center; gap:5px; }
+  .tab.active     { background:#fff; color:var(--fg); box-shadow:0 1px 3px rgba(0,0,0,.1); font-weight:600; }
+
+  /* ── Upload Zone ── */
+  .upload-zone    { border:2px dashed var(--border); border-radius:12px; padding:40px; text-align:center; cursor:pointer; background:#fafbff; }
+  .upload-zone:hover { border-color:var(--primary); background:var(--primary10); }
+
+  /* ── Timeline ── */
+  .timeline       { position:relative; padding-left:28px; }
+  .timeline::before { content:''; position:absolute; left:8px; top:0; bottom:0; width:2px; background:var(--border); }
+  .timeline-item  { position:relative; margin-bottom:16px; }
+  .timeline-dot   { position:absolute; left:-24px; top:4px; width:12px; height:12px; border-radius:50%; background:var(--primary); border:2px solid #fff; box-shadow:0 0 0 2px var(--primary10); }
+  .timeline-card  { background:#fff; border:1px solid var(--border); border-radius:8px; padding:12px; }
+
+  /* ── Page separator ── */
+  .page-divider   { width:100%; height:40px; background:#e8eaf6; display:flex; align-items:center; padding:0 28px; }
+  .page-label     { font-size:11px; font-weight:700; color:#6366f1; letter-spacing:.1em; text-transform:uppercase; }
+
+  /* SCROLLBAR */
+  ::-webkit-scrollbar { width:6px; height:6px; }
+  ::-webkit-scrollbar-track { background:transparent; }
+  ::-webkit-scrollbar-thumb { background:#c7c9e0; border-radius:99px; }
+</style>
+</head>
+<body>
+
+<!-- ═══════════════════════════════════════════════════
+     SCREEN 1 — DASHBOARD
+═══════════════════════════════════════════════════ -->
+<div class="screen">
+
+  <!-- SIDEBAR -->
+  <nav class="sidebar">
+    <div class="sidebar-logo">
+      <div class="sidebar-logo-icon">
+        <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="#e0e7ff" stroke-width="2"><path d="M20 7l-8-4-8 4m16 0-8 4m8-4v10l-8 4m0-10L4 7m8 4v10"/></svg>
+      </div>
+      <div>
+        <div class="sidebar-logo-text">Spare Parts</div>
+        <div class="sidebar-logo-sub">Tracking System</div>
+      </div>
+    </div>
+
+    <div class="sidebar-section">Main</div>
+
+    <a class="nav-item active">
+      <svg class="nav-icon" fill="none" viewBox="0 0 24 24" stroke="#a5b4fc" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+      Dashboard
+    </a>
+    <a class="nav-item">
+      <svg class="nav-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M20 7l-8-4-8 4m16 0-8 4m8-4v10l-8 4m0-10L4 7m8 4v10"/></svg>
+      Spare Parts
+    </a>
+    <a class="nav-item">
+      <svg class="nav-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M9 17v-2m3 2v-4m3 4v-6M5 20h14a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+      Excel Import
+    </a>
+    <a class="nav-item">
+      <svg class="nav-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><circle cx="12" cy="12" r="3"/></svg>
+      Maintenance
+    </a>
+
+    <div class="sidebar-section" style="margin-top:8px;">Notifications</div>
+    <a class="nav-item">
+      <svg class="nav-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/></svg>
+      Alerts
+      <span class="nav-badge">5</span>
+    </a>
+
+    <div class="sidebar-section" style="margin-top:8px;">Analytics</div>
+    <a class="nav-item">
+      <svg class="nav-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M9 17v-2m3 2v-4m3 4v-6M5 20h14a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+      Reports
+    </a>
+    <a class="nav-item">
+      <svg class="nav-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+      Part History
+    </a>
+
+    <div class="sidebar-footer">
+      <div class="sidebar-user">
+        <div class="avatar">AA</div>
+        <div>
+          <div class="avatar-name">Ahmed Al-Rashidi</div>
+          <div class="avatar-role">Inventory Manager</div>
+        </div>
+      </div>
+    </div>
+  </nav>
+
+  <!-- MAIN -->
+  <main class="main">
+    <div class="page">
+
+      <!-- Header -->
+      <div class="flex-between">
+        <div>
+          <h1 style="font-size:18px;font-weight:700;color:#111827;">Ahmed Al-Rashidi</h1>
+          <p class="text-muted text-sm mt-1">Inventory Manager · Spare Parts Tracking System</p>
+        </div>
+        <div class="flex gap-2">
+          <span class="badge badge-critical" style="padding:5px 12px;font-size:12px;">
+            <span style="width:7px;height:7px;background:#dc2626;border-radius:50%;display:inline-block;"></span>
+            2 Critical
+          </span>
+          <span class="badge badge-primary" style="padding:5px 12px;font-size:12px;">5 Active Alerts</span>
+        </div>
+      </div>
+
+      <!-- KPI Cards -->
+      <div class="stat-cards">
+        <div class="stat-card emerald">
+          <div>
+            <div class="stat-label">Available</div>
+            <div class="stat-value">70%</div>
+            <div class="stat-sub">7 of 10 parts</div>
+          </div>
+          <div class="stat-icon emerald">
+            <svg fill="none" viewBox="0 0 24 24" stroke="#059669" stroke-width="2"><path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+          </div>
+        </div>
+        <div class="stat-card blue">
+          <div>
+            <div class="stat-label">Under Maintenance</div>
+            <div class="stat-value">20%</div>
+            <div class="stat-sub">2 parts</div>
+          </div>
+          <div class="stat-icon blue">
+            <svg fill="none" viewBox="0 0 24 24" stroke="#2563eb" stroke-width="2"><path d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><circle cx="12" cy="12" r="3"/></svg>
+          </div>
+        </div>
+        <div class="stat-card amber">
+          <div>
+            <div class="stat-label">Nearing Expiry</div>
+            <div class="stat-value">20%</div>
+            <div class="stat-sub">2 parts</div>
+          </div>
+          <div class="stat-icon amber">
+            <svg fill="none" viewBox="0 0 24 24" stroke="#d97706" stroke-width="2"><path d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+          </div>
+        </div>
+        <div class="stat-card red">
+          <div>
+            <div class="stat-label">Expired</div>
+            <div class="stat-value">10%</div>
+            <div class="stat-sub">1 part</div>
+          </div>
+          <div class="stat-icon red">
+            <svg fill="none" viewBox="0 0 24 24" stroke="#dc2626" stroke-width="2"><path d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+          </div>
+        </div>
+      </div>
+
+      <!-- Counter Cards -->
+      <div class="grid-2">
+        <div class="card">
+          <div class="card-body flex flex-center gap-4" style="padding:18px 20px;">
+            <div class="stat-icon amber"><svg fill="none" viewBox="0 0 24 24" stroke="#d97706" stroke-width="2"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg></div>
+            <div>
+              <div class="stat-label">Low Stock Parts</div>
+              <div class="stat-value" style="font-size:26px;margin:2px 0;">3</div>
+              <div class="stat-sub">Below minimum threshold</div>
+            </div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-body flex flex-center gap-4" style="padding:18px 20px;">
+            <div class="stat-icon red"><svg fill="none" viewBox="0 0 24 24" stroke="#dc2626" stroke-width="2"><path d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><circle cx="12" cy="12" r="3"/></svg></div>
+            <div>
+              <div class="stat-label">Overdue Returns</div>
+              <div class="stat-value" style="font-size:26px;margin:2px 0;">1</div>
+              <div class="stat-sub">Past expected return date</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Inventory Health -->
+      <div class="card">
+        <div class="card-header" style="padding-bottom:12px;">
+          <div class="card-title uppercase text-xs" style="letter-spacing:.08em;">Inventory Health</div>
+        </div>
+        <div class="card-body" style="padding-top:0;">
+          <div class="health-row">
+            <div class="health-label">
+              <span class="font-semi" style="font-size:13px;">Available</span>
+              <div class="flex gap-2"><span class="text-muted text-sm">7 parts</span><span style="font-weight:700;color:#059669;width:36px;text-align:right;font-size:13px;">70%</span></div>
+            </div>
+            <div class="health-track"><div class="health-fill" style="width:70%;background:#10b981;"></div></div>
+          </div>
+          <div class="health-row">
+            <div class="health-label">
+              <span class="font-semi" style="font-size:13px;">Under Maintenance</span>
+              <div class="flex gap-2"><span class="text-muted text-sm">2 parts</span><span style="font-weight:700;color:#2563eb;width:36px;text-align:right;font-size:13px;">20%</span></div>
+            </div>
+            <div class="health-track"><div class="health-fill" style="width:20%;background:#3b82f6;"></div></div>
+          </div>
+          <div class="health-row">
+            <div class="health-label">
+              <span class="font-semi" style="font-size:13px;">Nearing Expiry</span>
+              <div class="flex gap-2"><span class="text-muted text-sm">2 parts</span><span style="font-weight:700;color:#d97706;width:36px;text-align:right;font-size:13px;">20%</span></div>
+            </div>
+            <div class="health-track"><div class="health-fill" style="width:20%;background:#f59e0b;"></div></div>
+          </div>
+          <div class="health-row">
+            <div class="health-label">
+              <span class="font-semi" style="font-size:13px;">Expired</span>
+              <div class="flex gap-2"><span class="text-muted text-sm">1 part</span><span style="font-weight:700;color:#dc2626;width:36px;text-align:right;font-size:13px;">10%</span></div>
+            </div>
+            <div class="health-track"><div class="health-fill" style="width:10%;background:#ef4444;"></div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Panels Row -->
+      <div class="grid-3">
+        <!-- Alerts -->
+        <div class="card">
+          <div class="card-header"><div class="card-title"><svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="#dc2626" stroke-width="2"><path d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg> Active Alerts</div></div>
+          <div class="card-body space-y-2" style="padding-top:10px;">
+            <div class="alert-item alert-critical"><div class="alert-dot dot-red"></div><div><div class="font-semi" style="font-size:13px;">SP-001</div><div class="text-muted text-xs mt-1">Filter assembly expired on 2024-12-01. Immediate replacement required.</div></div></div>
+            <div class="alert-item alert-critical"><div class="alert-dot dot-red"></div><div><div class="font-semi" style="font-size:13px;">SP-003</div><div class="text-muted text-xs mt-1">Bearing unit quantity (2) at critical minimum threshold.</div></div></div>
+            <div class="alert-item alert-warning"><div class="alert-dot dot-amber"></div><div><div class="font-semi" style="font-size:13px;">SP-005</div><div class="text-muted text-xs mt-1">Control valve expires in 14 days (2025-01-28).</div></div></div>
+            <div class="alert-item alert-warning"><div class="alert-dot dot-amber"></div><div><div class="font-semi" style="font-size:13px;">SP-007</div><div class="text-muted text-xs mt-1">Pressure gauge quantity (1) below minimum stock level.</div></div></div>
+          </div>
+        </div>
+
+        <!-- Low Stock -->
+        <div class="card">
+          <div class="card-header"><div class="card-title"><svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="#d97706" stroke-width="2"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg> Low Stock</div></div>
+          <div class="card-body space-y-2" style="padding-top:10px;">
+            <div class="flex-between rounded border p-3" style="background:#fafbff;">
+              <div><div class="font-semi" style="font-size:13px;">SP-003</div><div class="text-muted text-xs mt-1">Bearing Unit 6205-2RS</div></div>
+              <span class="badge badge-lowstock">2 / 5</span>
+            </div>
+            <div class="flex-between rounded border p-3" style="background:#fafbff;">
+              <div><div class="font-semi" style="font-size:13px;">SP-007</div><div class="text-muted text-xs mt-1">Pressure Gauge 0-10 bar</div></div>
+              <span class="badge badge-lowstock">1 / 3</span>
+            </div>
+            <div class="flex-between rounded border p-3" style="background:#fafbff;">
+              <div><div class="font-semi" style="font-size:13px;">SP-009</div><div class="text-muted text-xs mt-1">Fuse 10A 600V</div></div>
+              <span class="badge badge-lowstock">4 / 10</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Near Expiry -->
+        <div class="card">
+          <div class="card-header"><div class="card-title"><svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="#d97706" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg> Nearing Expiry</div></div>
+          <div class="card-body space-y-2" style="padding-top:10px;">
+            <div class="flex-between rounded border p-3" style="background:#fafbff;">
+              <div><div class="font-semi" style="font-size:13px;">SP-005</div><div class="text-muted text-xs mt-1">2025-01-28</div></div>
+              <span class="badge badge-warning">14d left</span>
+            </div>
+            <div class="flex-between rounded border p-3" style="background:#fafbff;">
+              <div><div class="font-semi" style="font-size:13px;">SP-008</div><div class="text-muted text-xs mt-1">2025-02-15</div></div>
+              <span class="badge badge-warning">32d left</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- All Parts Table -->
+      <div class="card">
+        <div class="card-header" style="padding-bottom:0;"><div class="card-title uppercase text-xs" style="padding:16px 20px;border-bottom:1px solid var(--border);">All Parts — Status Overview</div></div>
+        <div class="card-body-flush">
+          <table>
+            <thead>
+              <tr><th>Part #</th><th>Description</th><th>Location</th><th>Qty</th><th>Status</th></tr>
+            </thead>
+            <tbody>
+              <tr><td class="font-semi">SP-001</td><td>Hydraulic Filter Assembly</td><td>Warehouse A-1</td><td>5</td><td><span class="badge badge-expired">Expired</span></td></tr>
+              <tr><td class="font-semi">SP-002</td><td>Electric Motor 5HP</td><td>Warehouse B-3</td><td>3</td><td><span class="badge badge-available">Available</span></td></tr>
+              <tr><td class="font-semi">SP-003</td><td>Bearing Unit 6205-2RS</td><td>Shelf C-12</td><td>2</td><td><span class="badge badge-lowstock">Low Stock</span></td></tr>
+              <tr><td class="font-semi">SP-004</td><td>Centrifugal Pump Impeller</td><td>Workshop D-2</td><td>1</td><td><span class="badge badge-maint">Under Maintenance</span></td></tr>
+              <tr><td class="font-semi">SP-005</td><td>Control Valve 2" DN50</td><td>Warehouse A-3</td><td>8</td><td><span class="badge badge-available">Available</span></td></tr>
+              <tr><td class="font-semi">SP-006</td><td>Relay Module 24VDC</td><td>Electrical Room</td><td>12</td><td><span class="badge badge-available">Available</span></td></tr>
+              <tr><td class="font-semi">SP-007</td><td>Pressure Gauge 0-10 bar</td><td>Shelf B-8</td><td>1</td><td><span class="badge badge-lowstock">Low Stock</span></td></tr>
+              <tr><td class="font-semi">SP-008</td><td>O-Ring Set (Assorted)</td><td>Shelf A-5</td><td>20</td><td><span class="badge badge-available">Available</span></td></tr>
+              <tr><td class="font-semi">SP-009</td><td>Fuse 10A 600V</td><td>Electrical Room</td><td>4</td><td><span class="badge badge-lowstock">Low Stock</span></td></tr>
+              <tr><td class="font-semi">SP-010</td><td>Solenoid Valve 24VDC</td><td>Workshop D-5</td><td>2</td><td><span class="badge badge-maint">Under Maintenance</span></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+    </div><!-- /page -->
+  </main>
+</div><!-- /screen 1 -->
+
+
+<!-- ═══════════════════════════════════════════════════
+     SCREEN 2 — SPARE PARTS PAGE
+═══════════════════════════════════════════════════ -->
+<div class="page-divider"><span class="page-label">Screen 2 — Spare Parts</span></div>
+<div class="screen">
+  <nav class="sidebar">
+    <div class="sidebar-logo"><div class="sidebar-logo-icon"><svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="#e0e7ff" stroke-width="2"><path d="M20 7l-8-4-8 4m16 0-8 4m8-4v10l-8 4m0-10L4 7m8 4v10"/></svg></div><div><div class="sidebar-logo-text">Spare Parts</div><div class="sidebar-logo-sub">Tracking System</div></div></div>
+    <div class="sidebar-section">Main</div>
+    <a class="nav-item">Dashboard</a>
+    <a class="nav-item active">Spare Parts</a>
+    <a class="nav-item">Excel Import</a>
+    <a class="nav-item">Maintenance</a>
+    <div class="sidebar-section" style="margin-top:8px;">Notifications</div>
+    <a class="nav-item">Alerts <span class="nav-badge">5</span></a>
+    <div class="sidebar-section" style="margin-top:8px;">Analytics</div>
+    <a class="nav-item">Reports</a>
+    <a class="nav-item">Part History</a>
+    <div class="sidebar-footer"><div class="sidebar-user"><div class="avatar">AA</div><div><div class="avatar-name">Ahmed Al-Rashidi</div><div class="avatar-role">Inventory Manager</div></div></div></div>
+  </nav>
+  <main class="main">
+    <div class="page">
+      <div class="flex-between">
+        <div><h1 style="font-size:18px;font-weight:700;">Spare Parts Inventory</h1><p class="text-muted text-sm mt-1">Manage and monitor all spare parts in the system</p></div>
+        <div class="flex gap-2">
+          <button class="btn btn-outline btn-sm">
+            <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>
+            Import CSV
+          </button>
+          <button class="btn btn-primary btn-sm">
+            <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            Add Part
+          </button>
+        </div>
+      </div>
+
+      <!-- Filters -->
+      <div class="card">
+        <div class="card-body" style="padding:14px 20px;display:flex;gap:12px;align-items:center;">
+          <div style="position:relative;flex:1;">
+            <svg style="position:absolute;left:10px;top:50%;transform:translateY(-50%);opacity:.5;" width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+            <input class="input" style="padding-left:32px;" placeholder="Search by part number, description, serial…" />
+          </div>
+          <button class="btn btn-primary btn-sm">All</button>
+          <button class="btn btn-outline btn-sm">Available</button>
+          <button class="btn btn-outline btn-sm">Under Maintenance</button>
+          <button class="btn btn-outline btn-sm">Expired</button>
+          <button class="btn btn-outline btn-sm">Low Stock</button>
+        </div>
+      </div>
+
+      <!-- Table -->
+      <div class="card">
+        <div class="card-body-flush">
+          <table>
+            <thead><tr><th>Part #</th><th>Serial #</th><th>Description</th><th>Class</th><th>Location</th><th>Qty</th><th>Min</th><th>Status</th><th>Expiry</th><th>Actions</th></tr></thead>
+            <tbody>
+              <tr>
+                <td class="font-semi">SP-001</td><td class="text-muted">SN-20241101</td><td>Hydraulic Filter Assembly</td>
+                <td><span class="badge badge-outline">A</span></td><td class="text-muted">Warehouse A-1</td><td>5</td><td>3</td>
+                <td><span class="badge badge-expired">Expired</span></td><td class="text-muted">2024-12-01</td>
+                <td><div class="flex gap-2"><button class="btn btn-outline btn-sm">Edit</button><button class="btn btn-outline btn-sm" style="color:#dc2626;border-color:#fecaca;">Delete</button></div></td>
+              </tr>
+              <tr>
+                <td class="font-semi">SP-002</td><td class="text-muted">SN-20240615</td><td>Electric Motor 5HP</td>
+                <td><span class="badge badge-outline">B</span></td><td class="text-muted">Warehouse B-3</td><td>3</td><td>2</td>
+                <td><span class="badge badge-available">Available</span></td><td class="text-muted">2026-06-15</td>
+                <td><div class="flex gap-2"><button class="btn btn-outline btn-sm">Edit</button><button class="btn btn-outline btn-sm" style="color:#2563eb;border-color:#bfdbfe;">Maintenance</button></div></td>
+              </tr>
+              <tr>
+                <td class="font-semi">SP-003</td><td class="text-muted">SN-20240820</td><td>Bearing Unit 6205-2RS</td>
+                <td><span class="badge badge-outline">C</span></td><td class="text-muted">Shelf C-12</td><td style="color:#dc2626;font-weight:700;">2</td><td>5</td>
+                <td><span class="badge badge-lowstock">Low Stock</span></td><td class="text-muted">2027-08-20</td>
+                <td><div class="flex gap-2"><button class="btn btn-outline btn-sm">Edit</button></div></td>
+              </tr>
+              <tr>
+                <td class="font-semi">SP-004</td><td class="text-muted">SN-20231201</td><td>Centrifugal Pump Impeller</td>
+                <td><span class="badge badge-outline">A</span></td><td class="text-muted">Workshop D-2</td><td>1</td><td>1</td>
+                <td><span class="badge badge-maint">Under Maintenance</span></td><td class="text-muted">N/A</td>
+                <td><div class="flex gap-2"><button class="btn btn-outline btn-sm">Edit</button></div></td>
+              </tr>
+              <tr>
+                <td class="font-semi">SP-005</td><td class="text-muted">SN-20240110</td><td>Control Valve 2" DN50</td>
+                <td><span class="badge badge-outline">B</span></td><td class="text-muted">Warehouse A-3</td><td>8</td><td>2</td>
+                <td><span class="badge badge-available">Available</span></td><td class="text-muted" style="color:#d97706;">2025-01-28</td>
+                <td><div class="flex gap-2"><button class="btn btn-outline btn-sm">Edit</button><button class="btn btn-outline btn-sm" style="color:#2563eb;border-color:#bfdbfe;">Maintenance</button></div></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Add Part Dialog (shown as overlay) -->
+      <div style="position:relative;height:460px;">
+        <div class="dialog-overlay" style="position:absolute;border-radius:10px;">
+          <div class="dialog">
+            <div class="dialog-title">Add New Spare Part</div>
+            <div class="form-row" style="margin-bottom:12px;">
+              <div><label class="label">Part Number *</label><input class="input" value="SP-011" /></div>
+              <div><label class="label">Serial Number *</label><input class="input" value="SN-20250101" /></div>
+            </div>
+            <div style="margin-bottom:12px;"><label class="label">Description *</label><input class="input" value="Air Filter Element 25 Micron" /></div>
+            <div class="form-row" style="margin-bottom:12px;">
+              <div><label class="label">Class</label><select class="select"><option>A</option><option>B</option><option>C</option></select></div>
+              <div><label class="label">Location</label><input class="input" value="Warehouse A-2" /></div>
+            </div>
+            <div class="form-row" style="margin-bottom:12px;">
+              <div><label class="label">Quantity</label><input class="input" value="15" /></div>
+              <div><label class="label">Min Stock Threshold</label><input class="input" value="5" /></div>
+            </div>
+            <div class="form-row" style="margin-bottom:4px;">
+              <div><label class="label">Expiry Date</label><input class="input" value="2026-03-15" /></div>
+              <div><label class="label">Alert Before (days)</label><input class="input" value="30" /></div>
+            </div>
+            <div class="dialog-footer">
+              <button class="btn btn-outline">Cancel</button>
+              <button class="btn btn-primary">Add Part</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </main>
+</div>
+
+
+<!-- ═══════════════════════════════════════════════════
+     SCREEN 3 — MAINTENANCE PAGE
+═══════════════════════════════════════════════════ -->
+<div class="page-divider"><span class="page-label">Screen 3 — Maintenance Tracking</span></div>
+<div class="screen">
+  <nav class="sidebar">
+    <div class="sidebar-logo"><div class="sidebar-logo-icon"><svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="#e0e7ff" stroke-width="2"><path d="M20 7l-8-4-8 4m16 0-8 4m8-4v10l-8 4m0-10L4 7m8 4v10"/></svg></div><div><div class="sidebar-logo-text">Spare Parts</div><div class="sidebar-logo-sub">Tracking System</div></div></div>
+    <div class="sidebar-section">Main</div>
+    <a class="nav-item">Dashboard</a><a class="nav-item">Spare Parts</a><a class="nav-item">Excel Import</a><a class="nav-item active">Maintenance</a>
+    <div class="sidebar-section" style="margin-top:8px;">Notifications</div><a class="nav-item">Alerts <span class="nav-badge">5</span></a>
+    <div class="sidebar-section" style="margin-top:8px;">Analytics</div><a class="nav-item">Reports</a><a class="nav-item">Part History</a>
+    <div class="sidebar-footer"><div class="sidebar-user"><div class="avatar">AA</div><div><div class="avatar-name">Ahmed Al-Rashidi</div><div class="avatar-role">Inventory Manager</div></div></div></div>
+  </nav>
+  <main class="main">
+    <div class="page">
+      <div><h1 style="font-size:18px;font-weight:700;">Maintenance Tracking</h1><p class="text-muted text-sm mt-1">Monitor spare parts sent for maintenance and track their return status</p></div>
+
+      <div class="grid-3">
+        <div class="card"><div class="card-body" style="padding:18px 20px;"><p class="text-muted text-sm">Active</p><p style="font-size:32px;font-weight:800;color:#2563eb;line-height:1;margin-top:4px;">1</p></div></div>
+        <div class="card"><div class="card-body" style="padding:18px 20px;"><p class="text-muted text-sm">Overdue</p><p style="font-size:32px;font-weight:800;color:#dc2626;line-height:1;margin-top:4px;">1</p></div></div>
+        <div class="card"><div class="card-body" style="padding:18px 20px;"><p class="text-muted text-sm">Total Returned</p><p style="font-size:32px;font-weight:800;color:#059669;line-height:1;margin-top:4px;">3</p></div></div>
+      </div>
+
+      <div class="card">
+        <div class="card-body" style="padding:14px 20px;display:flex;gap:12px;">
+          <div style="position:relative;flex:1;"><svg style="position:absolute;left:10px;top:50%;transform:translateY(-50%);opacity:.5;" width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg><input class="input" style="padding-left:32px;" placeholder="Search by part number, description or serial…" /></div>
+          <button class="btn btn-outline btn-sm">All</button>
+          <button class="btn btn-outline btn-sm" style="color:#2563eb;border-color:#bfdbfe;">Active</button>
+          <button class="btn btn-outline btn-sm" style="color:#dc2626;border-color:#fecaca;">Overdue</button>
+          <button class="btn btn-outline btn-sm" style="color:#059669;border-color:#a7f3d0;">Returned</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header" style="padding:16px 20px;border-bottom:1px solid var(--border);">
+          <div class="card-title"><svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><circle cx="12" cy="12" r="3"/></svg> Maintenance Records (5)</div>
+        </div>
+        <div class="card-body-flush">
+          <table>
+            <thead><tr><th>Part #</th><th>Serial #</th><th>Description</th><th>Start Date</th><th>Expected Return</th><th>Actual Return</th><th>Certificate</th><th>Status</th><th>Actions</th></tr></thead>
+            <tbody>
+              <tr><td class="font-semi">SP-004</td><td class="text-muted">SN-20231201</td><td>Centrifugal Pump Impeller</td><td class="text-muted">2025-01-05</td><td class="text-muted">2025-01-20</td><td class="text-muted">—</td><td class="text-muted">—</td><td><span class="badge badge-overdue">Overdue</span></td><td><button class="btn btn-outline btn-sm">↺ Return</button></td></tr>
+              <tr><td class="font-semi">SP-010</td><td class="text-muted">SN-20240901</td><td>Solenoid Valve 24VDC</td><td class="text-muted">2025-01-10</td><td class="text-muted">2025-02-10</td><td class="text-muted">—</td><td class="text-muted">—</td><td><span class="badge badge-active">Active</span></td><td><button class="btn btn-outline btn-sm">↺ Return</button></td></tr>
+              <tr><td class="font-semi">SP-002</td><td class="text-muted">SN-20240615</td><td>Electric Motor 5HP</td><td class="text-muted">2024-11-01</td><td class="text-muted">2024-11-30</td><td class="text-muted">2024-11-29</td><td class="text-muted" style="color:#4338ca;text-decoration:underline;cursor:pointer;">cert-002.pdf</td><td><span class="badge badge-returned">Returned</span></td><td></td></tr>
+              <tr><td class="font-semi">SP-006</td><td class="text-muted">SN-20240301</td><td>Relay Module 24VDC</td><td class="text-muted">2024-10-10</td><td class="text-muted">2024-10-25</td><td class="text-muted">2024-10-23</td><td class="text-muted">—</td><td><span class="badge badge-returned">Returned</span></td><td></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Return Dialog -->
+      <div style="position:relative;height:280px;">
+        <div class="dialog-overlay" style="position:absolute;border-radius:10px;">
+          <div class="dialog" style="width:400px;">
+            <div class="dialog-title">Return from Maintenance</div>
+            <div style="margin-bottom:14px;"><label class="label">Updated Expiry Date (optional)</label><input class="input" type="date" value="2026-01-20" /></div>
+            <div><label class="label">Upload Maintenance Certificate (optional)</label><input class="input" type="text" value="maintenance-cert-sp004.pdf" /></div>
+            <div class="dialog-footer"><button class="btn btn-outline">Cancel</button><button class="btn btn-primary">Confirm Return</button></div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </main>
+</div>
+
+
+<!-- ═══════════════════════════════════════════════════
+     SCREEN 4 — ALERTS PAGE
+═══════════════════════════════════════════════════ -->
+<div class="page-divider"><span class="page-label">Screen 4 — Alerts</span></div>
+<div class="screen">
+  <nav class="sidebar">
+    <div class="sidebar-logo"><div class="sidebar-logo-icon"><svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="#e0e7ff" stroke-width="2"><path d="M20 7l-8-4-8 4m16 0-8 4m8-4v10l-8 4m0-10L4 7m8 4v10"/></svg></div><div><div class="sidebar-logo-text">Spare Parts</div><div class="sidebar-logo-sub">Tracking System</div></div></div>
+    <div class="sidebar-section">Main</div>
+    <a class="nav-item">Dashboard</a><a class="nav-item">Spare Parts</a><a class="nav-item">Excel Import</a><a class="nav-item">Maintenance</a>
+    <div class="sidebar-section" style="margin-top:8px;">Notifications</div><a class="nav-item active">Alerts <span class="nav-badge">5</span></a>
+    <div class="sidebar-section" style="margin-top:8px;">Analytics</div><a class="nav-item">Reports</a><a class="nav-item">Part History</a>
+    <div class="sidebar-footer"><div class="sidebar-user"><div class="avatar">AA</div><div><div class="avatar-name">Ahmed Al-Rashidi</div><div class="avatar-role">Inventory Manager</div></div></div></div>
+  </nav>
+  <main class="main">
+    <div class="page">
+      <div class="flex-between">
+        <div><h1 style="font-size:18px;font-weight:700;">Alerts</h1><p class="text-muted text-sm mt-1">Expiry, low stock, and maintenance return notifications</p></div>
+        <button class="btn btn-outline">✓✓ Mark All Read</button>
+      </div>
+
+      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:14px;">
+        <div class="card"><div class="card-body flex-center gap-3" style="padding:16px 20px;">
+          <div style="width:40px;height:40px;background:#e8eaf6;border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0;"><svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="#475569" stroke-width="2"><path d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/></svg></div>
+          <div><p class="text-muted text-xs font-semi">Total Active</p><p style="font-size:26px;font-weight:800;line-height:1;margin-top:2px;">5</p></div>
+        </div></div>
+        <div class="card"><div class="card-body flex-center gap-3" style="padding:16px 20px;">
+          <div style="width:40px;height:40px;background:#fee2e2;border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0;"><svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="#dc2626" stroke-width="2"><path d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg></div>
+          <div><p class="text-muted text-xs font-semi">Critical</p><p style="font-size:26px;font-weight:800;color:#dc2626;line-height:1;margin-top:2px;">2</p></div>
+        </div></div>
+        <div class="card"><div class="card-body flex-center gap-3" style="padding:16px 20px;">
+          <div style="width:40px;height:40px;background:#fef3c7;border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0;"><svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="#d97706" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></div>
+          <div><p class="text-muted text-xs font-semi">Expiry</p><p style="font-size:26px;font-weight:800;line-height:1;margin-top:2px;">2</p></div>
+        </div></div>
+        <div class="card"><div class="card-body flex-center gap-3" style="padding:16px 20px;">
+          <div style="width:40px;height:40px;background:#fef3c7;border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0;"><svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="#d97706" stroke-width="2"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg></div>
+          <div><p class="text-muted text-xs font-semi">Low Stock</p><p style="font-size:26px;font-weight:800;line-height:1;margin-top:2px;">3</p></div>
+        </div></div>
+      </div>
+
+      <div class="flex gap-2">
+        <button class="btn btn-primary btn-sm">All Types</button>
+        <button class="btn btn-outline btn-sm">Expiry</button>
+        <button class="btn btn-outline btn-sm">Low Stock</button>
+        <button class="btn btn-outline btn-sm">Maintenance Return</button>
+        <button class="btn btn-outline btn-sm" style="margin-left:auto;">Unread Only</button>
+      </div>
+
+      <div class="card">
+        <div class="card-header" style="padding-bottom:8px;"><div class="card-title" style="font-size:12px;">5 Alerts</div></div>
+        <div class="card-body space-y-2">
+          <div class="alert-item alert-critical" style="border-radius:12px;">
+            <div style="width:36px;height:36px;background:#fee2e2;border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0;"><svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="#dc2626" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></div>
+            <div style="flex:1;">
+              <div class="flex-center gap-2" style="flex-wrap:wrap;"><span class="font-semi" style="font-size:13px;">SP-001</span><span class="badge badge-critical">critical</span><span class="badge badge-outline">Expiry</span><span style="width:8px;height:8px;background:#dc2626;border-radius:50%;display:inline-block;margin-left:4px;"></span></div>
+              <p class="text-muted text-sm mt-1">Hydraulic Filter Assembly expired on 2024-12-01. Immediate replacement required.</p>
+              <p class="text-muted text-xs mt-1">13 Jul 2025, 09:00 AM</p>
+            </div>
+            <button class="btn btn-ghost btn-sm">Dismiss</button>
+          </div>
+          <div class="alert-item alert-critical" style="border-radius:12px;">
+            <div style="width:36px;height:36px;background:#fee2e2;border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0;"><svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="#dc2626" stroke-width="2"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg></div>
+            <div style="flex:1;">
+              <div class="flex-center gap-2"><span class="font-semi" style="font-size:13px;">SP-003</span><span class="badge badge-critical">critical</span><span class="badge badge-outline">Low Stock</span><span style="width:8px;height:8px;background:#dc2626;border-radius:50%;display:inline-block;margin-left:4px;"></span></div>
+              <p class="text-muted text-sm mt-1">Bearing Unit 6205-2RS stock (2) is critically below minimum threshold (5).</p>
+              <p class="text-muted text-xs mt-1">13 Jul 2025, 08:45 AM</p>
+            </div>
+            <button class="btn btn-ghost btn-sm">Dismiss</button>
+          </div>
+          <div class="alert-item alert-warning" style="border-radius:12px;opacity:.7;">
+            <div style="width:36px;height:36px;background:#fef3c7;border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0;"><svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="#d97706" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></div>
+            <div style="flex:1;">
+              <div class="flex-center gap-2"><span class="font-semi" style="font-size:13px;">SP-005</span><span class="badge badge-warning">warning</span><span class="badge badge-outline">Expiry</span></div>
+              <p class="text-muted text-sm mt-1">Control Valve 2" DN50 expires in 14 days (2025-01-28).</p>
+              <p class="text-muted text-xs mt-1">12 Jul 2025, 07:00 AM</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+
+
+<!-- ═══════════════════════════════════════════════════
+     SCREEN 5 — REPORTS PAGE
+═══════════════════════════════════════════════════ -->
+<div class="page-divider"><span class="page-label">Screen 5 — Reports</span></div>
+<div class="screen">
+  <nav class="sidebar">
+    <div class="sidebar-logo"><div class="sidebar-logo-icon"><svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="#e0e7ff" stroke-width="2"><path d="M20 7l-8-4-8 4m16 0-8 4m8-4v10l-8 4m0-10L4 7m8 4v10"/></svg></div><div><div class="sidebar-logo-text">Spare Parts</div><div class="sidebar-logo-sub">Tracking System</div></div></div>
+    <div class="sidebar-section">Main</div>
+    <a class="nav-item">Dashboard</a><a class="nav-item">Spare Parts</a><a class="nav-item">Excel Import</a><a class="nav-item">Maintenance</a>
+    <div class="sidebar-section" style="margin-top:8px;">Notifications</div><a class="nav-item">Alerts <span class="nav-badge">5</span></a>
+    <div class="sidebar-section" style="margin-top:8px;">Analytics</div><a class="nav-item active">Reports</a><a class="nav-item">Part History</a>
+    <div class="sidebar-footer"><div class="sidebar-user"><div class="avatar">AA</div><div><div class="avatar-name">Ahmed Al-Rashidi</div><div class="avatar-role">Inventory Manager</div></div></div></div>
+  </nav>
+  <main class="main">
+    <div class="page">
+      <div><h1 style="font-size:18px;font-weight:700;">Reports</h1><p class="text-muted text-sm mt-1">Generate, preview, and export inventory and maintenance reports</p></div>
+
+      <div class="tabs-list" style="width:fit-content;">
+        <div class="tab active">⏱ Near Expiry</div>
+        <div class="tab">↘ Low Stock</div>
+        <div class="tab">⚙ Maintenance</div>
+        <div class="tab">⊙ Part History</div>
+        <div class="tab">▦ Annual Forecast</div>
+      </div>
+
+      <div class="card">
+        <div class="card-header" style="padding:16px 20px;">
+          <div class="flex-between">
+            <div><div class="card-title">⏱ Near Expiry Report</div><div class="card-desc">2 parts at or within expiry alert threshold</div></div>
+            <button class="btn btn-outline btn-sm">↓ Export</button>
+          </div>
+        </div>
+        <div class="card-body-flush">
+          <table>
+            <thead><tr><th>Part #</th><th>Serial #</th><th>Description</th><th>Qty</th><th>Location</th><th>Expiry Date</th><th>Days</th></tr></thead>
+            <tbody>
+              <tr><td class="font-semi">SP-005</td><td class="text-muted">SN-20240110</td><td>Control Valve 2" DN50</td><td>8</td><td class="text-muted">Warehouse A-3</td><td class="text-muted">2025-01-28</td><td><span class="badge badge-warning">14d</span></td></tr>
+              <tr><td class="font-semi">SP-008</td><td class="text-muted">SN-20240530</td><td>O-Ring Set (Assorted)</td><td>20</td><td class="text-muted">Shelf A-5</td><td class="text-muted">2025-02-15</td><td><span class="badge badge-warning">32d</span></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+
+
+<!-- ═══════════════════════════════════════════════════
+     SCREEN 6 — EXCEL IMPORT PAGE
+═══════════════════════════════════════════════════ -->
+<div class="page-divider"><span class="page-label">Screen 6 — Excel Import</span></div>
+<div class="screen">
+  <nav class="sidebar">
+    <div class="sidebar-logo"><div class="sidebar-logo-icon"><svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="#e0e7ff" stroke-width="2"><path d="M20 7l-8-4-8 4m16 0-8 4m8-4v10l-8 4m0-10L4 7m8 4v10"/></svg></div><div><div class="sidebar-logo-text">Spare Parts</div><div class="sidebar-logo-sub">Tracking System</div></div></div>
+    <div class="sidebar-section">Main</div>
+    <a class="nav-item">Dashboard</a><a class="nav-item">Spare Parts</a><a class="nav-item active">Excel Import</a><a class="nav-item">Maintenance</a>
+    <div class="sidebar-section" style="margin-top:8px;">Notifications</div><a class="nav-item">Alerts <span class="nav-badge">5</span></a>
+    <div class="sidebar-section" style="margin-top:8px;">Analytics</div><a class="nav-item">Reports</a><a class="nav-item">Part History</a>
+    <div class="sidebar-footer"><div class="sidebar-user"><div class="avatar">AA</div><div><div class="avatar-name">Ahmed Al-Rashidi</div><div class="avatar-role">Inventory Manager</div></div></div></div>
+  </nav>
+  <main class="main">
+    <div class="page">
+      <div><h1 style="font-size:18px;font-weight:700;">Excel / CSV Import</h1><p class="text-muted text-sm mt-1">Upload a CSV file to bulk-import or update spare parts</p></div>
+
+      <div class="grid-2" style="align-items:start;">
+        <div style="display:flex;flex-direction:column;gap:14px;">
+          <div class="upload-zone">
+            <div style="width:48px;height:48px;background:#e0e7ff;border-radius:12px;display:flex;align-items:center;justify-content:center;margin:0 auto 12px;"><svg width="22" height="22" fill="none" viewBox="0 0 24 24" stroke="#4338ca" stroke-width="2"><path d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg></div>
+            <p style="font-weight:600;font-size:14px;color:#111827;">Drop CSV file here</p>
+            <p class="text-muted text-sm" style="margin-top:4px;">or click to browse</p>
+            <button class="btn btn-outline btn-sm" style="margin-top:14px;">Browse File</button>
+          </div>
+          <div class="card"><div class="card-body">
+            <p class="font-semi text-sm" style="margin-bottom:8px;">Required columns:</p>
+            <div style="display:flex;flex-wrap:wrap;gap:6px;">
+              <span class="badge badge-primary">Part Number</span><span class="badge badge-primary">Serial Number</span><span class="badge badge-primary">Description</span><span class="badge badge-outline">Class</span><span class="badge badge-outline">Location</span><span class="badge badge-outline">Quantity</span><span class="badge badge-outline">Min Stock</span><span class="badge badge-outline">Expiry Date</span>
+            </div>
+            <button class="btn btn-outline btn-sm" style="margin-top:12px;width:100%;">↓ Download Template</button>
+          </div></div>
+        </div>
+
+        <div class="card">
+          <div class="card-header" style="padding-bottom:0;"><div class="flex-between" style="padding:16px 20px;border-bottom:1px solid var(--border);"><div class="card-title">Preview — 4 rows</div><div class="flex gap-2"><span class="badge badge-available">3 valid</span><span class="badge badge-critical">1 error</span></div></div></div>
+          <div class="card-body-flush">
+            <table>
+              <thead><tr><th>#</th><th>Part #</th><th>Description</th><th>Qty</th><th>Status</th></tr></thead>
+              <tbody>
+                <tr><td class="text-muted">1</td><td class="font-semi">SP-011</td><td>Air Filter 25µm</td><td>15</td><td><span class="badge badge-available">✓ Valid</span></td></tr>
+                <tr><td class="text-muted">2</td><td class="font-semi">SP-012</td><td>Coupling Flexible</td><td>4</td><td><span class="badge badge-available">✓ Valid</span></td></tr>
+                <tr style="background:#fff5f5;"><td class="text-muted">3</td><td class="font-semi text-muted">—</td><td class="text-muted">Missing Part #</td><td>7</td><td><span class="badge badge-critical">✗ Missing Part #</span></td></tr>
+                <tr><td class="text-muted">4</td><td class="font-semi">SP-003</td><td>Bearing Unit 6205-2RS</td><td>8</td><td><span class="badge badge-info">↑ Update</span></td></tr>
+              </tbody>
+            </table>
+          </div>
+          <div style="padding:16px 20px;border-top:1px solid var(--border);display:flex;justify-content:flex-end;gap:8px;">
+            <button class="btn btn-outline">Clear</button>
+            <button class="btn btn-primary">Import 3 Valid Rows</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+
+
+<!-- ═══════════════════════════════════════════════════
+     SCREEN 7 — PART HISTORY PAGE
+═══════════════════════════════════════════════════ -->
+<div class="page-divider"><span class="page-label">Screen 7 — Part History</span></div>
+<div class="screen">
+  <nav class="sidebar">
+    <div class="sidebar-logo"><div class="sidebar-logo-icon"><svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="#e0e7ff" stroke-width="2"><path d="M20 7l-8-4-8 4m16 0-8 4m8-4v10l-8 4m0-10L4 7m8 4v10"/></svg></div><div><div class="sidebar-logo-text">Spare Parts</div><div class="sidebar-logo-sub">Tracking System</div></div></div>
+    <div class="sidebar-section">Main</div>
+    <a class="nav-item">Dashboard</a><a class="nav-item">Spare Parts</a><a class="nav-item">Excel Import</a><a class="nav-item">Maintenance</a>
+    <div class="sidebar-section" style="margin-top:8px;">Notifications</div><a class="nav-item">Alerts <span class="nav-badge">5</span></a>
+    <div class="sidebar-section" style="margin-top:8px;">Analytics</div><a class="nav-item">Reports</a><a class="nav-item active">Part History</a>
+    <div class="sidebar-footer"><div class="sidebar-user"><div class="avatar">AA</div><div><div class="avatar-name">Ahmed Al-Rashidi</div><div class="avatar-role">Inventory Manager</div></div></div></div>
+  </nav>
+  <main class="main">
+    <div class="page">
+      <div><h1 style="font-size:18px;font-weight:700;">Part History</h1><p class="text-muted text-sm mt-1">Search for a spare part to view its complete lifecycle history</p></div>
+
+      <div class="card"><div class="card-body" style="padding:14px 20px;">
+        <div style="position:relative;"><svg style="position:absolute;left:12px;top:50%;transform:translateY(-50%);opacity:.5;" width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        <input class="input" style="padding-left:36px;" value="SP-002" /></div>
+        <div style="margin-top:8px;border:1px solid var(--border);border-radius:8px;overflow:hidden;">
+          <div class="flex-between" style="padding:12px 16px;background:#f5f6fc;border-bottom:1px solid var(--border);cursor:pointer;"><div><span class="font-semi" style="font-size:13px;">SP-002</span><span class="text-muted text-sm" style="margin-left:8px;">— Electric Motor 5HP</span></div><span class="badge badge-available">Available</span></div>
+        </div>
+      </div></div>
+
+      <div class="card"><div class="card-header"><div class="card-title"><svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><rect x="1" y="3" width="15" height="13" rx="1"/><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg> Part Details</div></div>
+      <div class="card-body">
+        <div style="display:grid;grid-template-columns:repeat(6,1fr);gap:16px;">
+          <div><p class="text-muted text-xs">Part Number</p><p class="font-semi" style="margin-top:3px;">SP-002</p></div>
+          <div><p class="text-muted text-xs">Description</p><p class="font-semi" style="margin-top:3px;">Electric Motor 5HP</p></div>
+          <div><p class="text-muted text-xs">Status</p><div style="margin-top:4px;"><span class="badge badge-available">Available</span></div></div>
+          <div><p class="text-muted text-xs">Location</p><p class="font-semi" style="margin-top:3px;">Warehouse B-3</p></div>
+          <div><p class="text-muted text-xs">Available Qty</p><p class="font-semi" style="margin-top:3px;">3</p></div>
+          <div><p class="text-muted text-xs">Expiry Date</p><p class="font-semi" style="margin-top:3px;">2026-06-15</p></div>
+        </div>
+      </div></div>
+
+      <div class="card"><div class="card-header" style="padding-bottom:12px;"><div class="card-title"><svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg> History Timeline <span class="badge badge-outline" style="margin-left:auto;">4 events</span></div></div>
+      <div class="card-body">
+        <div class="timeline">
+          <div class="timeline-item">
+            <div class="timeline-dot"></div>
+            <div class="timeline-card">
+              <div class="flex-between"><span class="badge badge-returned">Returned from Maintenance</span><span class="text-muted text-xs">29 Nov 2024, 14:30</span></div>
+              <p class="text-sm" style="margin-top:6px;">Returned from maintenance with updated certificate</p>
+              <div class="flex-center gap-2" style="margin-top:4px;"><span class="text-muted text-xs" style="text-decoration:line-through;">Under Maintenance</span><span class="text-muted text-xs">→</span><span class="font-semi text-xs">Available</span></div>
+              <p class="text-muted text-xs" style="margin-top:4px;">By: Ahmed Al-Rashidi</p>
+            </div>
+          </div>
+          <div class="timeline-item">
+            <div class="timeline-dot" style="background:#3b82f6;box-shadow:0 0 0 2px #dbeafe;"></div>
+            <div class="timeline-card">
+              <div class="flex-between"><span class="badge badge-maint">Sent for Maintenance</span><span class="text-muted text-xs">1 Nov 2024, 09:00</span></div>
+              <p class="text-sm" style="margin-top:6px;">Sent for scheduled overhaul and inspection</p>
+              <div class="flex-center gap-2" style="margin-top:4px;"><span class="text-muted text-xs" style="text-decoration:line-through;">Available</span><span class="text-muted text-xs">→</span><span class="font-semi text-xs">Under Maintenance</span></div>
+              <p class="text-muted text-xs" style="margin-top:4px;">By: Ahmed Al-Rashidi</p>
+            </div>
+          </div>
+          <div class="timeline-item">
+            <div class="timeline-dot" style="background:#d97706;box-shadow:0 0 0 2px #fef3c7;"></div>
+            <div class="timeline-card">
+              <div class="flex-between"><span class="badge badge-warning">Quantity Updated</span><span class="text-muted text-xs">15 Jun 2024, 11:20</span></div>
+              <p class="text-sm" style="margin-top:6px;">Stock replenished after procurement</p>
+              <div class="flex-center gap-2" style="margin-top:4px;"><span class="text-muted text-xs" style="text-decoration:line-through;">1</span><span class="text-muted text-xs">→</span><span class="font-semi text-xs">3</span></div>
+              <p class="text-muted text-xs" style="margin-top:4px;">By: System</p>
+            </div>
+          </div>
+          <div class="timeline-item">
+            <div class="timeline-dot" style="background:#6366f1;box-shadow:0 0 0 2px #e0e7ff;"></div>
+            <div class="timeline-card">
+              <div class="flex-between"><span class="badge badge-primary">Created</span><span class="text-muted text-xs">1 Jan 2024, 08:00</span></div>
+              <p class="text-sm" style="margin-top:6px;">Part added to inventory via Excel import</p>
+              <p class="text-muted text-xs" style="margin-top:4px;">By: System</p>
+            </div>
+          </div>
+        </div>
+      </div></div>
+
+    </div>
+  </main>
+</div>
+
+</body>
+</html>

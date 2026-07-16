@@ -9,20 +9,44 @@ import {
   FileText,
   History,
   X,
-  Settings2,
+  LockOpen,
 } from "lucide-react";
-import { useApp } from "../context/AppContext";
+import { useApp, canAccess } from "../context/AppContext";
+import type { UserRole, FeatureId } from "../types";
 
 interface SidebarProps {
   currentPage: string;
   onPageChange: (page: string) => void;
 }
 
+const ALL_NAV_ITEMS: { id: string; name: string; icon: React.ElementType; description: string }[] = [
+  { id: "dashboard",    name: "Dashboard",    icon: LayoutDashboard, description: "Overview & summary" },
+  { id: "spare-parts",  name: "Spare Parts",  icon: Package,         description: "Manage inventory" },
+  { id: "excel-import", name: "Excel Import", icon: FileSpreadsheet,  description: "Import inventory data" },
+  { id: "maintenance",  name: "Maintenance",  icon: Wrench,          description: "Part tracking" },
+  { id: "alerts",       name: "Alerts",       icon: Bell,            description: "Notifications" },
+  { id: "reports",      name: "Reports",      icon: FileText,        description: "Generate & export" },
+  { id: "history",      name: "History",      icon: History,         description: "Part lifecycle history" },
+];
+
+const MANAGE_PERMISSIONS_ITEM = { id: "manage-permissions", name: "Manage Permissions", icon: LockOpen, description: "Feature access control" };
+
 export function Sidebar({ currentPage, onPageChange }: SidebarProps) {
   const [isExpanded, setIsExpanded] = useState(false);
   const { state } = useApp();
 
+  const role = state.currentUser.role;
   const unreadAlerts = state.alerts.filter(a => !a.isRead).length;
+
+  const baseItems = role === "Admin"
+    ? [...ALL_NAV_ITEMS, MANAGE_PERMISSIONS_ITEM]
+    : ALL_NAV_ITEMS.filter(item =>
+        canAccess(state.featurePermissions[item.id as FeatureId], role as "Maintenance Team" | "Storage Team")
+      );
+
+  const navigationItems = baseItems.map(item =>
+    item.id === "alerts" ? { ...item, badge: unreadAlerts } : item
+  );
 
   const handleNavigationClick = (pageId: string) => {
     if (!isExpanded) {
@@ -32,16 +56,6 @@ export function Sidebar({ currentPage, onPageChange }: SidebarProps) {
       onPageChange(pageId);
     }
   };
-
-  const navigationItems = [
-    { id: "dashboard", name: "Dashboard", icon: LayoutDashboard, description: "Overview & summary" },
-    { id: "spare-parts", name: "Spare Parts", icon: Package, description: "Manage inventory" },
-    { id: "excel-import", name: "Excel Import", icon: FileSpreadsheet, description: "Import inventory data" },
-    { id: "maintenance", name: "Maintenance", icon: Wrench, description: "Maintenance tracking" },
-    { id: "alerts", name: "Alerts", icon: Bell, description: "Notifications", badge: unreadAlerts },
-    { id: "reports", name: "Reports", icon: FileText, description: "Generate & export" },
-    { id: "history", name: "History", icon: History, description: "Part lifecycle history" },
-  ];
 
   return (
     <div className="ml-6 my-6">
@@ -63,11 +77,17 @@ export function Sidebar({ currentPage, onPageChange }: SidebarProps) {
             </button>
           )}
           <div className="w-12 h-12 bg-gradient-to-br from-sidebar-primary to-sidebar-primary/80 rounded-full flex items-center justify-center shadow-lg">
-            <Settings2 className="w-6 h-6 text-sidebar-primary-foreground" />
+            {role === "Admin" ? (
+              <LockOpen className="w-6 h-6 text-sidebar-primary-foreground" />
+            ) : (
+              <Package className="w-6 h-6 text-sidebar-primary-foreground" />
+            )}
           </div>
           {isExpanded && (
             <div className="mt-3 text-center">
-              <h2 className="text-sidebar-foreground font-semibold text-base whitespace-nowrap">Tracking System</h2>
+              <h2 className="text-sidebar-foreground font-semibold text-base whitespace-nowrap">
+                {role === "Admin" ? "Management" : role === "Storage Team" ? "Storage Portal" : "Tracking System"}
+              </h2>
               <p className="text-sidebar-foreground/70 text-xs whitespace-nowrap mt-1">Spare Parts Management</p>
             </div>
           )}

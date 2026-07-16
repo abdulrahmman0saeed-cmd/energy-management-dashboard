@@ -80,14 +80,14 @@ export function DemandChart({ dataMode, selectedDay }: DemandChartProps) {
           <div className="h-80">
             <ResponsiveContainer width="100%" height="100%">
               <LineChart data={demandData} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
                 <XAxis 
                   dataKey="time" 
-                  stroke="hsl(var(--muted-foreground))"
+                  stroke="var(--muted-foreground)"
                   fontSize={12}
                 />
                 <YAxis 
-                  stroke="hsl(var(--muted-foreground))"
+                  stroke="var(--muted-foreground)"
                   fontSize={12}
                   domain={[0, 1400]}
                 />

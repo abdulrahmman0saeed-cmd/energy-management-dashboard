@@ -7,13 +7,8 @@ import { Input } from "../components/ui/input";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "../components/ui/dialog";
 import { Label } from "../components/ui/label";
 import { useApp } from "../context/AppContext";
+import { MAINTENANCE_STATUS_BADGE } from "../lib/statusColors";
 import type { HistoryEvent } from "../types";
-
-const STATUS_COLORS: Record<string, string> = {
-  Active: "bg-blue-100 text-blue-700 border-blue-200",
-  Overdue: "bg-red-100 text-red-700 border-red-200",
-  Returned: "bg-green-100 text-green-700 border-green-200",
-};
 
 export function MaintenancePage() {
   const { state, dispatch } = useApp();
@@ -55,14 +50,14 @@ export function MaintenancePage() {
       partNumber: record.partNumber,
       serialNumber: record.serialNumber,
       eventType: "maintenance-returned",
-      description: "Returned from maintenance",
-      oldValue: "Under Maintenance",
+      description: "Returned from re-collaboration",
+      oldValue: "Under Tracking",
       newValue: "Available",
       performedBy: state.currentUser.name,
       timestamp: new Date().toISOString(),
     };
     dispatch({
-      type: "RETURN_FROM_MAINTENANCE",
+      type: "RETURN_FROM_TRACKING",
       payload: {
         partId: record.partId,
         recordId: selectedRecordId,
@@ -80,8 +75,8 @@ export function MaintenancePage() {
   return (
     <div className="p-6 space-y-6 bg-background min-h-full">
       <div>
-        <h1 className="text-2xl font-semibold">Maintenance Tracking</h1>
-        <p className="text-muted-foreground mt-1">Monitor spare parts sent for maintenance and track their return status</p>
+        <h1 className="text-xl font-semibold text-foreground">Maintenance Tracking</h1>
+        <p className="text-sm text-muted-foreground mt-0.5">Monitor spare parts sent for maintenance and track their return status</p>
       </div>
 
       {/* Summary */}
@@ -128,21 +123,21 @@ export function MaintenancePage() {
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
-                <tr className="border-b bg-muted/40">
-                  <th className="text-left px-4 py-3 font-medium text-muted-foreground">Part #</th>
-                  <th className="text-left px-4 py-3 font-medium text-muted-foreground">Serial #</th>
-                  <th className="text-left px-4 py-3 font-medium text-muted-foreground">Description</th>
-                  <th className="text-left px-4 py-3 font-medium text-muted-foreground">Start Date</th>
-                  <th className="text-left px-4 py-3 font-medium text-muted-foreground">Expected Return</th>
-                  <th className="text-left px-4 py-3 font-medium text-muted-foreground">Actual Return</th>
-                  <th className="text-left px-4 py-3 font-medium text-muted-foreground">Certificate</th>
-                  <th className="text-left px-4 py-3 font-medium text-muted-foreground">Status</th>
-                  <th className="text-left px-4 py-3 font-medium text-muted-foreground">Actions</th>
+                <tr className="border-b border-border bg-muted/50">
+                  <th className="text-left px-4 py-3 font-semibold text-muted-foreground uppercase tracking-wider text-xs">Part #</th>
+                  <th className="text-left px-4 py-3 font-semibold text-muted-foreground uppercase tracking-wider text-xs">Serial #</th>
+                  <th className="text-left px-4 py-3 font-semibold text-muted-foreground uppercase tracking-wider text-xs">Description</th>
+                  <th className="text-left px-4 py-3 font-semibold text-muted-foreground uppercase tracking-wider text-xs">Start Date</th>
+                  <th className="text-left px-4 py-3 font-semibold text-muted-foreground uppercase tracking-wider text-xs">Expected Return</th>
+                  <th className="text-left px-4 py-3 font-semibold text-muted-foreground uppercase tracking-wider text-xs">Actual Return</th>
+                  <th className="text-left px-4 py-3 font-semibold text-muted-foreground uppercase tracking-wider text-xs">Certificate</th>
+                  <th className="text-left px-4 py-3 font-semibold text-muted-foreground uppercase tracking-wider text-xs">Status</th>
+                  <th className="text-left px-4 py-3 font-semibold text-muted-foreground uppercase tracking-wider text-xs">Actions</th>
                 </tr>
               </thead>
               <tbody>
                 {filtered.map(record => (
-                  <tr key={record.id} className="border-b last:border-0 hover:bg-accent/30 transition-colors">
+                  <tr key={record.id} className="border-b last:border-0 hover:bg-accent/40 transition-colors">
                     <td className="px-4 py-3 font-medium">{record.partNumber}</td>
                     <td className="px-4 py-3 text-muted-foreground">{record.serialNumber}</td>
                     <td className="px-4 py-3">{record.description}</td>
@@ -155,7 +150,7 @@ export function MaintenancePage() {
                         : <span className="text-muted-foreground text-xs">—</span>}
                     </td>
                     <td className="px-4 py-3">
-                      <Badge className={`${STATUS_COLORS[record.status]} border text-xs`}>{record.status}</Badge>
+                      <Badge className={`${MAINTENANCE_STATUS_BADGE[record.status]} border text-xs font-medium`}>{record.status}</Badge>
                     </td>
                     <td className="px-4 py-3">
                       {record.status !== "Returned" && (

@@ -1,4 +1,36 @@
-export type PartStatus = "Available" | "Under Maintenance" | "Expired" | "Low Stock";
+export type UserRole = "Admin" | "Maintenance Team" | "Storage Team";
+
+export type FeatureId =
+  | "dashboard"
+  | "spare-parts"
+  | "excel-import"
+  | "maintenance"
+  | "alerts"
+  | "reports"
+  | "history";
+
+/** Who can see this feature in their sidebar */
+export type PermissionTarget = "Maintenance Team" | "Storage Team" | "both" | "none";
+
+export type FeaturePermissions = Record<FeatureId, PermissionTarget>;
+
+/** Credentials for mock login */
+export interface MockCredentials {
+  userId: string;
+  password: string;
+}
+
+export interface User {
+  id: string;
+  name: string;
+  email: string;
+  role: UserRole;
+  initials: string;
+  department: string;
+}
+
+/** "Expired Soon" is a computed display status only — never stored on SparePart.status */
+export type PartStatus = "Available" | "Under Tracking" | "Expired Soon" | "Expired" | "Low Stock";
 
 export interface SparePart {
   id: string;
@@ -8,11 +40,15 @@ export interface SparePart {
   quantity: number;
   location: string;
   expiryDate: string | null;
-  status: PartStatus;
+  status: "Available" | "Under Tracking" | "Expired" | "Low Stock";
   minStockThreshold: number;
   expiryAlertDays: number;
   maintenanceAlertDays: number;
   class: string;
+  /** Populated from the 2025 Consumption Report import */
+  consumedQuantity?: number;
+  /** "Zero Stock" when the Excel source had that literal value instead of a number */
+  currentStockLabel?: "Zero Stock" | null;
 }
 
 export interface MaintenanceRecord {
@@ -72,6 +108,6 @@ export interface ForecastItem {
   partNumber: string;
   description: string;
   consumedQuantity: number;
-  currentStock: number;
+  currentStock: number | "Zero Stock";
   forecastedDemand: number;
 }
